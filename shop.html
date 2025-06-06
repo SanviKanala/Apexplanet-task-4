@@ -1,0 +1,182 @@
+<!-- shop.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopEasy - Shop</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 1rem;
+      color: white;
+      text-decoration: none;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 2rem;
+      text-align: center;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .product {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    .product img {
+      width: 100%;
+      height: 150px;
+      object-fit: contain;
+      margin-bottom: 0.5rem;
+    }
+    .product h4 {
+      margin: 0.5rem 0;
+    }
+    .product button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .product button.added {
+      background-color: #6c757d;
+      cursor: default;
+    }
+    .quantity-controls {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .quantity-controls button {
+      padding: 0.3rem 0.6rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ShopEasy</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="cart.html">Cart</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Shop Products</h2>
+    <div class="product-grid" id="productGrid"></div>
+  </main>
+  <script>
+    const products = [
+      { name: 'Wireless Headphones', price: 59.99, img: 'images/headphones.jpg' },
+      { name: 'Smartwatch', price: 99.99, img: 'images/smartwatch.jpg' },
+      { name: 'Bluetooth Speaker', price: 39.99, img: 'images/speaker.jpg' },
+      { name: 'Fitness Tracker', price: 49.99, img: 'images/tracker.jpg' },
+      { name: 'Backpack', price: 29.99, img: 'images/backpack.jpg' },
+      { name: 'Gaming Mouse', price: 19.99, img: 'images/mouse.jpg' },
+      { name: 'LED Desk Lamp', price: 24.99, img: 'images/lamp.jpg' },
+      { name: 'Power Bank 10000mAh', price: 34.99, img: 'images/powerbank.jpg' },
+      { name: 'USB-C Hub', price: 44.99, img: 'images/hub.jpg' },
+      { name: 'Portable SSD 512GB', price: 79.99, img: 'images/ssd.jpg' },
+      { name: 'VR Headset', price: 149.99, img: 'images/vr.jpg' },
+      { name: 'Smart Home Plug', price: 15.99, img: 'images/plug.jpg' }
+    ];
+
+    function addToCart(name, price, button) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const itemIndex = cart.findIndex(item => item.name === name);
+
+      if (itemIndex > -1) {
+        cart[itemIndex].quantity += 1;
+      } else {
+        cart.push({ name, price, quantity: 1 });
+        button.textContent = 'Added to Cart';
+        button.classList.add('added');
+        button.disabled = true;
+      }
+
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateQuantityControls();
+    }
+
+    function updateQuantityControls() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart.forEach(item => {
+        const qtyDisplay = document.getElementById(`qty-${item.name}`);
+        if (qtyDisplay) qtyDisplay.textContent = item.quantity;
+      });
+    }
+
+    function increaseQuantity(name) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const item = cart.find(i => i.name === name);
+      if (item) item.quantity += 1;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateQuantityControls();
+    }
+
+    function decreaseQuantity(name) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const item = cart.find(i => i.name === name);
+      if (item && item.quantity > 1) {
+        item.quantity -= 1;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateQuantityControls();
+      }
+    }
+
+    function loadProducts() {
+      const grid = document.getElementById('productGrid');
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+      products.forEach(p => {
+        const isAdded = cart.some(c => c.name === p.name);
+        const itemQty = cart.find(c => c.name === p.name)?.quantity || 0;
+        const productDiv = document.createElement('div');
+        productDiv.className = 'product';
+        productDiv.innerHTML = `
+          <img src="${p.img}" alt="${p.name}">
+          <h4>${p.name}</h4>
+          <p>$${p.price.toFixed(2)}</p>
+          <button onclick="addToCart('${p.name}', ${p.price}, this)" ${isAdded ? 'class="added" disabled' : ''}>${isAdded ? 'Added to Cart' : 'Add to Cart'}</button>
+          ${isAdded ? `
+          <div class="quantity-controls">
+            <button onclick="decreaseQuantity('${p.name}')">-</button>
+            <span id="qty-${p.name}">${itemQty}</span>
+            <button onclick="increaseQuantity('${p.name}')">+</button>
+          </div>` : ''}
+        `;
+        grid.appendChild(productDiv);
+      });
+    }
+
+    window.onload = loadProducts;
+  </script>
+</body>
+</html>

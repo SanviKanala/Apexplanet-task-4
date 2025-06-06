@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopEasy - Cart</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 1rem;
+      color: white;
+      text-decoration: none;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    #cartItems {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+    .cart-item img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .item-details {
+      flex-grow: 1;
+    }
+    .item-details h4 {
+      margin: 0 0 0.5rem 0;
+    }
+    .item-details p {
+      margin: 0.25rem 0;
+    }
+    .quantity {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .quantity button {
+      padding: 0.3rem 0.7rem;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      user-select: none;
+    }
+    .quantity span {
+      min-width: 25px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .remove-button {
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+    .remove-button:hover {
+      background-color: #c82333;
+    }
+    #grandTotal {
+      text-align: right;
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-top: 2rem;
+      border-top: 2px solid #007bff;
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ShopEasy</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="cart.html">Cart</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <div id="grandTotal"></div>
+  </main>
+
+  <script>
+    // List of product images by product name
+    function getImageByName(name) {
+      const images = {
+        'Wireless Headphones': 'images/headphones.jpg',
+        'Smartwatch': 'images/smartwatch.jpg',
+        'Bluetooth Speaker': 'images/speaker.jpg',
+        'Fitness Tracker': 'images/tracker.jpg',
+        'Backpack': 'images/backpack.jpg',
+        'Gaming Mouse': 'images/mouse.jpg',
+        'LED Desk Lamp': 'images/lamp.jpg',
+        'Power Bank 10000mAh': 'images/powerbank.jpg',
+        'USB-C Hub': 'images/hub.jpg',
+        'Portable SSD 512GB': 'images/ssd.jpg',
+        'VR Headset': 'images/vr.jpg',
+        'Smart Home Plug': 'images/plug.jpg'
+      };
+      return images[name] || 'images/default.jpg';
+    }
+
+    function renderCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cartItemsContainer = document.getElementById('cartItems');
+      cartItemsContainer.innerHTML = '';
+
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+        document.getElementById('grandTotal').textContent = '';
+        return;
+      }
+
+      let grandTotal = 0;
+
+      cart.forEach((item, index) => {
+        const totalPrice = item.price * item.quantity;
+        grandTotal += totalPrice;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'cart-item';
+        itemDiv.innerHTML = `
+          <img src="${getImageByName(item.name)}" alt="${item.name}" />
+          <div class="item-details">
+            <h4>${item.name}</h4>
+            <p>Unit Price: $${item.price.toFixed(2)}</p>
+            <p>Total: $<span id="total-${index}">${totalPrice.toFixed(2)}</span></p>
+            <div class="quantity">
+              <button onclick="decreaseQuantity(${index})">-</button>
+              <span>${item.quantity}</span>
+              <button onclick="increaseQuantity(${index})">+</button>
+            </div>
+          </div>
+          <button class="remove-button" onclick="removeItem(${index})">Remove</button>
+        `;
+        cartItemsContainer.appendChild(itemDiv);
+      });
+
+      document.getElementById('grandTotal').textContent = `Grand Total: $${grandTotal.toFixed(2)}`;
+    }
+
+    function increaseQuantity(index) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart[index].quantity++;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    function decreaseQuantity(index) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      if (cart[index].quantity > 1) {
+        cart[index].quantity--;
+      } else {
+        cart.splice(index, 1);
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    function removeItem(index) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart.splice(index, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    window.onload = renderCart;
+  </script>
+</body>
+</html>
